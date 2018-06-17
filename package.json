@@ -1,0 +1,26 @@
+{
+  "name": "node-mysql",
+  "version": "1.0.0",
+  "description": "",
+  "main": "bamazonCustomer.js",
+  "dependencies": {
+    "init": "^0.1.2",
+    "inquirer": "^6.0.0",
+    "jshint": "^2.9.5",
+    "mysql": "^2.15.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Byteme71/Node-MySQL.git"
+  },
+  "author": "Daniela",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Byteme71/Node-MySQL/issues"
+  },
+  "homepage": "https://github.com/Byteme71/Node-MySQL#readme"
+}
