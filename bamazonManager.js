@@ -36,71 +36,68 @@ function startFirst() {
                 case "View Products for Sale":
                     console.clear();
                     viewInven();
+                    whatNext();
                     break;
                 case "View Low Inventory":
                     console.clear();
                     viewLowStock();
+                    whatNext();
                     break;
                 case "Add to Inventory":
                     console.clear();
+                    viewInven();
                     addInven();
+                    // whatNext();
                     break;
                 case "Add New Product":
                     console.clear();
-
+                    addItem();
+                    // whatNext();
+                    break;
             }
         });
 }
 
 function viewInven() {
     connection.query("SELECT * FROM products", function (err, results) {
-        // var inventoryArray = [];
-        // for (var i = 0; i < results.length; i++) {
-        //     inventoryArray.push(results[i]);
-        // }
-        // console.log(JSON.stringify(res, null, 2))
         console.log(JSON.stringify(results, null, 3));
     });
 }
 
 function viewLowStock() {
     connection.query("SELECT * FROM products WHERE stock_quantity < 10", function (err, results) {
-        // var lowFoodInven = [];
-        // for (var i = 0; i < results.length; i++) {
-        //     lowFoodInven.push(results[i]);
-        // }
         console.log(JSON.stringify(results, null, 2))
     });
 }
 
 
 function addInven() {
-    viewInven();
+
     inquirer
         .prompt([{
                 type: "input",
                 name: "id",
-                message: "Which product ID would you like to add stock to?"
+                message: "Which product ID would you like to update the stock of?"
             },
             {
                 type: "input",
                 name: "quantity",
-                message: "How much stock would you like to replenish?"
+                message: "What is the new stock quantity total?"
             }
         ]).then(function (userInput) {
 
             connection.query(
-                "UPDATE products SET ?  WHERE ?", [
-                    {
+                "UPDATE products SET ?  WHERE ?", [{
                         "stock_quantity": userInput.quantity
                     },
                     {
                         "item_id": userInput.id
                     }
                 ],
-                function (error) {
+                function (error, res) {
                     if (error) throw err;
-                    console.log(res.affectedRows + "Successfully updated the quantity!")
+                    console.log(res.affectedRows + " Successfully updated the quantity!")
+                    whatNext();
                 }
             );
         });
@@ -109,8 +106,67 @@ function addInven() {
 
 
 
-function addItem(){
-// connection.query("INSERT INTO porducts (product_name, department_name, price, stock_quantity VALUES ?", function (err, results) {
+function addItem() {
+    inquirer
+        .prompt([{
+                type: "input",
+                name: "productName",
+                message: "What is the name of the product you would like to add?"
+            },
+            {
+                type: "input",
+                name: "depName",
+                message: "What department should this product be in?"
+            },
+            {
+                type: "input",
+                name: "price",
+                message: "What should the price of the new product be?"
+            },
+            {
+                type: "input",
+                name: "stock",
+                message: "How much stock should we add of the new product?"
+            }
+        ]).then(function (answer) {
+
+            connection.query(
+                "INSERT INTO products SET ? ", {
+                    "product_name": answer.productName,
+                    "department_name": answer.depName,
+                    "price": parseInt(answer.price),
+                    "stock_quantity": parseInt(answer.stock)
+                },
+
+                function (err, res) {
+                    if (err) throw error;
+
+                    console.log(res.affectedRows + " Successfully added this product!")
+                    whatNext();
+                }
 
 
+            )
+        })
+}
+
+function whatNext() {
+    inquirer
+        .prompt([{
+            type: "list",
+            name: "whatsNext",
+            message: "Would you like to do, continue or exit?",
+            choices: ["Continue", "Exit"]
+        }, ]).then(function (yesOrNo) {
+            switch (yesOrNo.whatsNext) {
+                case "Continue":
+                    console.clear();
+                    startFirst();
+                    break;
+                case "Exit":
+                    console.log("Goodbye");
+                    connection.end();
+                    break;
+            }
+        });
 }
