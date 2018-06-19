@@ -24,6 +24,7 @@ connection.connect(function (err) {
 
 
 function startFirst() {
+    console.clear();
     connection.query("SELECT * FROM products", function (err, results) {
         if (err) throw err;
         inquirer
@@ -33,16 +34,8 @@ function startFirst() {
                 message: "Which department would you like shop from?",
                 choices: function () {
                     var choiceArray = [];
-                    // console.log(results[0].department_name);
-                    // console.log(results[3].department_name);
-                    // console.log(results[6].department_name);
-                    // console.log(results[9].department_name);
                     choiceArray.push(results[0].department_name, results[3].department_name, results[6].department_name, results[9].department_name);
-                    // for (var i = 0; i < results.length; i++) {
-                    //     choiceArray.push(results[i].department_name);
-                        // console.log(results[0].department_name);
-                        // console.log(results[3].department_name);
-                    // }
+
                     return choiceArray;
                 },
             }]).then(function (answer) {
@@ -53,116 +46,288 @@ function startFirst() {
                     displayPets();
                     inquirer
                         .prompt([{
-                            name: "secondQuestion",
-                            type: "input",
-                            message: "Choose from the below list and write the name of the item you would like to purchase:\n"
-                        },
+                                name: "secondQuestion",
+                                type: "input",
+                                message: "\nChoose from the below list and write the ID number of the item you would like to purchase:\n",
+                            },
 
-                        {
-                            type: "input",
-                            name: "secondQuestionPart2",
-                            message: "How many would you like to purchase?",
+                            {
+                                type: "input",
+                                name: "secondQuestionPart2",
+                                message: "How many would you like to purchase?",
 
-                        }
+                            }
 
                         ]).then(function (choicePets) {
+                            var query = connection.query("SELECT * FROM products", function (err, results) {
+                                if (err) throw err;
 
-                            // console.log(choicePets.secondQuestion)
+                                // console.log(choicePets.secondQuestion)
 
-                            var itemName = choicePets.secondQuestion;
+                                var itemId = choicePets.secondQuestion;
 
-                            console.log(itemName)
+                                // console.log(itemId)
 
-                            var itemQty = choicePets.secondQuestionPart2;
+                                var itemQty = choicePets.secondQuestionPart2;
 
-                            console.log(itemQty)
+                                // console.log(itemQty)
 
-                            buyItem(itemQty, itemName);
+
+
+                                var chosenItem;
+                                for (var i = 0; i < results.length; i++) {
+                                    // console.log(results[i].item_id)
+                                    // console.log(itemId)
+                                    if (results[i].item_id === parseInt(itemId)) {
+                                        chosenItem = results[i];
+                                    }
+                                }
+                                // console.log(chosenItem)
+
+
+
+                                if (parseInt(itemQty) < chosenItem.stock_quantity) {
+
+                                    connection.query("UPDATE products SET ? WHERE ?", [{
+                                                stock_quantity: chosenItem.stock_quantity - parseInt(itemQty),
+                                            },
+                                            {
+                                                item_id: chosenItem.item_id
+                                            },
+
+                                        ],
+                                        function (err, res) {
+                                            var newPrice = chosenItem.price * itemQty;
+                                            console.log(res.affectedRows + " products updated!\n Your total is $" + newPrice  + "\n");
+                                            askAgain()
+                                            // console.log("err" + err)
+                                        }
+                                    );
+
+                                    // console.log(query.sql);
+                                } else if (itemQty > chosenItem.stock_quantity) {
+                                    console.log("Sorry, we are out of stock of " + chosenItem.item_name + "\n")
+                                    askAgain()
+                                } else if (itemId !== chosenItem.item_id) {
+                                    console.log("We do not carry this!\n")
+                                    askAgain()
+                                }
+
+                            })
 
                         })
 
                 } else if (answer.firstQuestion === "home") {
+                    displayHome();
                     inquirer
                         .prompt([{
-                            name: "thirdQuestion",
-                            type: "input",
-                            message: "Choose from the folllowing list and write the name of the item you would like to purchase: " + displayHome(),
-                        },
+                                name: "thirdQuestion",
+                                type: "input",
+                                message: "\nChoose from the below list and write the ID number of the item you would like to purchase:\n",
+                            },
 
-                        {
-                            type: "input",
-                            name: "thirdQuestionPart2",
-                            message: "How many would you like to purchase?",
+                            {
+                                type: "input",
+                                name: "thirdQuestionPart2",
+                                message: "How many would you like to purchase?",
 
-                        }
+                            }
 
                         ]).then(function (choiceHome) {
 
-                            // console.log(choiceHome.thirdQuestion)
+                            var query = connection.query("SELECT * FROM products", function (err, results) {
+                                if (err) throw err;
 
-                            var itemName = choiceHome.thirdQuestion;
+                                // console.log(choiceHome.thirdQuestion)
 
-                            console.log(itemName)
+                                var itemId = choiceHome.thirdQuestion;
 
-                            var itemQty = choiceHome.thirdQuestionPart2;
+                                // console.log(itemId)
 
-                            console.log(itemQty)
+                                var itemQty = choiceHome.thirdQuestionPart2;
+
+                                // console.log(itemQty)
+
+                                var chosenItem;
+                                for (var i = 0; i < results.length; i++) {
+                                    // console.log(results[i].item_id)
+                                    // console.log(itemId)
+                                    if (results[i].item_id === parseInt(itemId)) {
+                                        chosenItem = results[i];
+                                    }
+                                }
+                                if (parseInt(itemQty) < chosenItem.stock_quantity) {
+
+                                    connection.query("UPDATE products SET ? WHERE ?", [{
+                                                stock_quantity: chosenItem.stock_quantity - parseInt(itemQty),
+                                            },
+                                            {
+                                                item_id: chosenItem.item_id
+                                            },
+
+                                        ],
+                                        function (err, res) {
+                                            var newPrice = chosenItem.price * itemQty;
+                                            console.log(res.affectedRows + " products updated!\n Your total is $" + newPrice + "\n");
+                                            askAgain()
+                                            // console.log("err" + err)
+                                        }
+                                    );
+
+                                    // console.log(query.sql);
+                                } else if (itemQty > chosenItem.stock_quantity) {
+                                    console.log("Sorry, we are out of stock of " + chosenItem.item_name + "\n")
+                                    askAgain()
+                                } else if (itemId !== chosenItem.item_id) {
+                                    console.log("We do not carry this!")
+                                    askAgain()
+                                }
+
+                            })
 
                         })
 
                 } else if (answer.firstQuestion === "beauty") {
+                    displayBeauty();
                     inquirer
                         .prompt([{
-                            name: "fourthQuestion",
-                            type: "input",
-                            message: "Choose from the folllowing list and write the name of the item you would like to purchase: " + displayBeauty(),
-                        },
-                        {
-                            type: "input",
-                            name: "fourthQuestionPart2",
-                            message: "How many would you like to purchase?",
+                                name: "fourthQuestion",
+                                type: "input",
+                                message: "\nChoose from the below list and write the ID number of the item you would like to purchase:\n",
+                            },
+                            {
+                                type: "input",
+                                name: "fourthQuestionPart2",
+                                message: "How many would you like to purchase?",
 
-                        }
+                            }
 
                         ]).then(function (choiceBeauty) {
 
-                            // console.log(choiceBeauty.fourthQuestion)
+                            var query = connection.query("SELECT * FROM products", function (err, results) {
+                                if (err) throw err;
 
-                            var itemName = choiceBeauty.fourthQuestion;
 
-                            console.log(itemName)
+                                // console.log(choiceBeauty.fourthQuestion)
 
-                            var itemQty = choiceBeauty.fourthQuestionPart2;
+                                var itemId = choiceBeauty.fourthQuestion;
 
-                            console.log(itemQty)
+                                // console.log(itemId)
+
+                                var itemQty = choiceBeauty.fourthQuestionPart2;
+
+                                // console.log(itemQty)
+
+                                var chosenItem;
+                                for (var i = 0; i < results.length; i++) {
+                                    // console.log(results[i].item_id)
+                                    // console.log(itemId)
+                                    if (results[i].item_id === parseInt(itemId)) {
+                                        chosenItem = results[i];
+                                    }
+                                }
+                                if (parseInt(itemQty) < chosenItem.stock_quantity) {
+
+                                    connection.query("UPDATE products SET ? WHERE ?", [{
+                                                stock_quantity: chosenItem.stock_quantity - parseInt(itemQty),
+                                            },
+                                            {
+                                                item_id: chosenItem.item_id
+                                            },
+
+                                        ],
+                                        function (err, res) {
+                                            var newPrice = chosenItem.price * itemQty;
+                                            console.log(res.affectedRows + " products updated!\n Your total is $" + newPrice + "\n");
+                                            askAgain()
+                                            // console.log("err" + err)
+                                        }
+                                    );
+
+                                    // console.log(query.sql);
+                                } else if (itemQty > chosenItem.stock_quantity) {
+                                    console.log("Sorry, we are out of stock of " + chosenItem.item_name + "\n")
+                                    askAgain()
+                                } else if (itemId !== chosenItem.item_id) {
+                                    console.log("We do not carry this!")
+                                    askAgain()
+                                }
+
+                            })
+
+
                         })
 
                 } else if (answer.firstQuestion === "electronics") {
+                    displayElecs();
                     inquirer
                         .prompt([{
-                            name: "fifthQuestion",
-                            type: "input",
-                            message: "Choose from the folllowing list and write the name of the item you would like to purchase: " + displayElecs(),
+                                name: "fifthQuestion",
+                                type: "input",
+                                message: "\nChoose from the below list and write the ID number of the item you would like to purchase:\n",
 
-                        },
-                        {
-                            type: "input",
-                            name: "fifthQuestionPart2",
-                            message: "How many would you like to purchase?",
+                            },
+                            {
+                                type: "input",
+                                name: "fifthQuestionPart2",
+                                message: "How many would you like to purchase?",
 
-                        }
+                            }
 
                         ]).then(function (choiceElec) {
 
-                            // console.log(choiceElec.fifthQuestion)
+                            var query = connection.query("SELECT * FROM products", function (err, results) {
+                                if (err) throw err;
 
-                            var itemName = choiceElec.fifthQuestion;
 
-                            console.log(itemName)
+                                // console.log(choiceElec.fifthQuestion)
 
-                            var itemQty = choiceElec.fifthQuestionPart2;
+                                var itemId = choiceElec.fifthQuestion;
 
-                            console.log(itemQty)
+                                // console.log(itemId)
+
+                                var itemQty = choiceElec.fifthQuestionPart2;
+
+                                // console.log(itemQty)
+
+
+
+                                var chosenItem;
+                                for (var i = 0; i < results.length; i++) {
+                                    // console.log(results[i].item_id)
+                                    // console.log(itemId)
+                                    if (results[i].item_id === parseInt(itemId)) {
+                                        chosenItem = results[i];
+                                    }
+                                }
+                                if (parseInt(itemQty) < chosenItem.stock_quantity) {
+
+                                    connection.query("UPDATE products SET ? WHERE ?", [{
+                                                stock_quantity: chosenItem.stock_quantity - parseInt(itemQty),
+                                            },
+                                            {
+                                                item_id: chosenItem.item_id
+                                            },
+
+                                        ],
+                                        function (err, res) {
+                                            var newPrice = chosenItem.price * itemQty;
+                                            console.log(res.affectedRows + " products updated!\n Your total is $" + newPrice + "\n");
+                                            askAgain()
+                                            // console.log("err" + err)
+                                        }
+                                    );
+
+                                    // console.log(query.sql);
+                                } else if (itemQty > chosenItem.stock_quantity) {
+                                    console.log("Sorry, we are out of stock of " + chosenItem.item_name + "\n")
+                                    askAgain()
+                                } else if (itemId !== chosenItem.item_id) {
+                                    console.log("We do not carry this!")
+                                    askAgain()
+                                }
+
+                            })
 
                         })
                 }
@@ -170,79 +335,94 @@ function startFirst() {
     });
 }
 
-//ask the quantity of the product they want to buy
 
-//subract the quantity from the quantity
+// function buyItem(quantity, item) {
 
-function buyItem(quantity, item) {
-    // if (quantity < 0){
+//     var query = connection.query("SELECT * FROM products", function (err, results) {
+//         if (err) throw err;
 
-    //     console.log("Sorry, we are out of stock")
+//         var chosenItem;
+//         for (var i = 0; i < results.length; i++) {
+//             // console.log(results[i].item_id)
+//             // console.log(itemId)
+//             if (results[i].item_id === parseInt(itemId)) {
+//                 chosenItem = results[i];
+//             }
+//         }
+//         console.log(chosenItem)
 
-    // }else if(quantity > 0){
+//     })
 
-        var query = connection.query("UPDATE products SET ? WHERE ?",
-        [
-            {
-                quantity: parseInt(quantity) /*- parseInt(itemQty),*/
+//     if (itemQty < chosenItem.stock_quantity) {
 
-            },
-            {
-                item: item
-            },
+//         connection.query("UPDATE products SET ? WHERE ?", [
+//                 {
+//                     stock_quantity: chosenItem.stock_quantity - parseInt(itemQty),
+//                 },
+//                 {
+//                     item_id: parseInt(item)
+//                 },
 
-        ],
-        function (err, res) {
+//             ],
+//             function (err, res) {
 
-            // console.log("error:" + err )
-            console.log(res + " products updated!\n");
+//                 // console.log("error:" + err )
+//                 console.log(res + " products updated!\n");
 
-            console.log("err" + err)
-        }
-    );
+//                 console.log("err" + err)
+//             }
+//         );
+//         // }
+//         console.log(query.sql);
+//     } else if (itemQty > chosenItem.stock_quantity) {
+//         console.log("Sorry, we are out of stock of " + chosenItem.item_name)
+//     } else if (itemId !== chosenItem.item_id) {
+//         console.log("We do not carry this!")
+//     }
 // }
-    console.log(query.sql);
-}
 
 
 function displayPets() {
+    console.clear();
 
     connection.query("SELECT * FROM products WHERE department_name = \"pets\"", function (err, results) {
         if (err) throw err;
 
         var choiceArray2 = [];
         for (var x = 0; x < results.length; x++) {
-            choiceArray2.push("Item id: " + results[x].item_id + " " + " product: " + results[x].product_name + " " + " price: $" + results[x].price + " " + results[x].stock_quantity + " in stock");
+            choiceArray2.push("Item ID: " + results[x].item_id + " " + " Product Name: " + results[x].product_name + " " + " Price: $" + results[x].price + ", (" + results[x].stock_quantity + " in stock)");
 
-            console.log("\nItem id: " + results[x].item_id + " " + " product: " + results[x].product_name + " " + " price: $" + results[x].price + " " + results[x].stock_quantity + " in stock\n")
+            console.log("\nItem ID: " + results[x].item_id + " " + " Product Name: " + results[x].product_name + " " + " Price: $" + results[x].price + ", (" + results[x].stock_quantity + " in stock)\n")
         }
         return choiceArray2;
     })
 }
 
 function displayHome() {
+    console.clear();
 
     connection.query("SELECT * FROM products WHERE department_name = \"home\"", function (err, results) {
         if (err) throw err;
         var choiceArray3 = [];
         for (var j = 0; j < results.length; j++) {
-            choiceArray3.push("Item id: " + results[j].item_id + " " + " product: " + results[j].product_name + " " + " price: $" + results[j].price + " " + results[j].stock_quantity + " in stock");
+            choiceArray3.push("Item ID: " + results[j].item_id + " " + " Product Name: " + results[j].product_name + " " + " Price: $" + results[j].price + ", (" + results[j].stock_quantity + " in stock)");
 
-            console.log("\nItem id: " + results[j].item_id + " " + " product: " + results[j].product_name + " " + " price: $" + results[j].price + " " + results[j].stock_quantity + " in stock\n")
+            console.log("\nItem ID: " + results[j].item_id + " " + " Product Name: " + results[j].product_name + " " + " Price: $" + results[j].price + ", (" + results[j].stock_quantity + " in stock)\n")
         }
         return choiceArray3;
     })
 }
 
 function displayBeauty() {
+    console.clear();
 
     connection.query("SELECT * FROM products WHERE department_name = \"beauty\"", function (err, results) {
         if (err) throw err;
         var choiceArray4 = [];
         for (var h = 0; h < results.length; h++) {
-            choiceArray4.push("Item id: " + results[h].item_id + " " + " product: " + results[h].product_name + " " + " price: $" + results[h].price + " " + results[h].stock_quantity + " in stock");
+            choiceArray4.push("Item ID: " + results[h].item_id + " " + " Product Name: " + results[h].product_name + " " + " Price: $" + results[h].price + ", (" + results[h].stock_quantity + " in stock)");
 
-            console.log("\nItem id: " + results[h].item_id + " " + " product: " + results[h].product_name + " " + " price: $" + results[h].price + " " + results[h].stock_quantity + " in stock\n")
+            console.log("\nItem ID: " + results[h].item_id + " " + " Product Name: " + results[h].product_name + " " + " Price: $" + results[h].price + ", (" + results[h].stock_quantity + " in stock)\n")
         }
         return choiceArray4;
 
@@ -250,86 +430,38 @@ function displayBeauty() {
 }
 
 function displayElecs() {
+    console.clear();
 
     connection.query("SELECT * FROM products WHERE department_name = \"electronics\"", function (err, results) {
         if (err) throw err;
         var choiceArray5 = [];
         for (var d = 0; d < results.length; d++) {
-            choiceArray5.push("Item id: " + results[d].item_id + " " + " product: " + results[d].product_name + " " + " price: $" + results[d].price + " " + results[d].stock_quantity + " in stock");
+            choiceArray5.push("Item ID: " + results[d].item_id + " " + " Product Name: " + results[d].product_name + " " + " Price: $" + results[d].price + ", (" + results[d].stock_quantity + " in stock)");
 
-            console.log("\nItem id: " + results[d].item_id + " " + " product: " + results[d].product_name + " " + " price: $" + results[d].price + " " + results[d].stock_quantity + " in stock\n")
+            console.log("\nItem ID: " + results[d].item_id + " " + " Product Name: " + results[d].product_name + " " + " Price: $" + results[d].price + ", (" + results[d].stock_quantity + " in stock)\n")
         }
         return choiceArray5;
     })
 }
 
+function askAgain() {
+    inquirer
+        .prompt([{
+            type: "list",
+            name: "restartOrNa",
+            message: "Would you like to keep shopping or leave my store?",
+            choices: ["keep shopping", "leave"]
+        }]).then(function (tellMe) {
 
-
-
-
-/////help below///////
-
-
-
-function bidAuction() {
-    // query the database for all items being auctioned
-    connection.query("SELECT * FROM auctions", function (err, results) {
-        if (err) throw err;
-        // once you have the items, prompt the user for which they'd like to bid on
-        inquirer
-            .prompt([
-                {
-                    name: "choice",
-                    type: "rawlist",
-                    choices: function () {
-                        var choiceArray = [];
-                        for (var i = 0; i < results.length; i++) {
-                            choiceArray.push(results[i].item_name);
-                        }
-                        return choiceArray;
-                    },
-                    message: "What auction would you like to place a bid in?"
-                },
-                {
-                    name: "bid",
-                    type: "input",
-                    message: "How much would you like to bid?"
-                }
-            ])
-            .then(function (answer) {
-                // get the information of the chosen item
-                var chosenItem;
-                for (var i = 0; i < results.length; i++) {
-                    if (results[i].item_name === answer.choice) {
-                        chosenItem = results[i];
-                    }
-                }
-
-                // determine if bid was high enough
-                if (chosenItem.highest_bid < parseInt(answer.bid)) {
-                    // bid was high enough, so update db, let the user know, and start over
-                    connection.query(
-                        "UPDATE auctions SET ? WHERE ?",
-                        [
-                            {
-                                highest_bid: answer.bid
-                            },
-                            {
-                                id: chosenItem.id
-                            }
-                        ],
-                        function (error) {
-                            if (error) throw err;
-                            console.log("Bid placed successfully!");
-                            start();
-                        }
-                    );
-                }
-                else {
-                    // bid wasn't high enough, so apologize and start over
-                    console.log("Your bid was too low. Try again...");
-                    start();
-                }
-            });
-    });
+            switch (tellMe.restartOrNa) {
+                case "keep shopping":
+                    console.clear();
+                    startFirst();
+                    break;
+                case "leave":
+                    console.log("Thanks for shopping, come again.");
+                    connection.end();
+                    break;
+            }
+        })
 }
